@@ -3,27 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, SoftDeletes;
 
-    protected $primaryKey = 'user_id';
-    protected $table = 'users';
-    
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'role',
-        'status',
-        'first_name',
-        'last_name',
-        'year_graduated',
-        'strand',
-        'profile_picture',
+        'status'
     ];
 
     protected $hidden = [
@@ -31,38 +24,37 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
-
-    // Relationships
+    // Fix the profile relationship - it should be hasOne, not belongsTo
     public function profile()
     {
-        return $this->hasOne(AlumniProfile::class, 'user_id', 'user_id');
+        return $this->hasOne(Profile::class, 'user_id', 'id');
     }
 
     public function posts()
     {
-        return $this->hasMany(Post::class, 'user_id', 'user_id');
+        return $this->hasMany(Post::class, 'user_id', 'id');
     }
 
     public function comments()
     {
-        return $this->hasMany(Comment::class, 'user_id', 'user_id');
+        return $this->hasMany(Comment::class, 'user_id', 'id');
     }
 
     public function likes()
     {
-        return $this->belongsToMany(Post::class, 'likes', 'user_id', 'post_id')
-                    ->withTimestamps();
+        return $this->hasMany(Like::class, 'user_id', 'id');
+    }
+
+    public function alumniIdRequests()
+    {
+        return $this->hasMany(AlumniIdRequest::class, 'user_id', 'id');
     }
 
     public function notifications()
     {
-        return $this->hasMany(Notification::class, 'user_id', 'user_id');
+        return $this->hasMany(Notification::class, 'user_id', 'id');
     }
 
-    // Helper methods
     public function isAdmin()
     {
         return $this->role === 'admin';
@@ -71,10 +63,5 @@ class User extends Authenticatable
     public function isApproved()
     {
         return $this->status === 'approved';
-    }
-    
-    public function getFullNameAttribute()
-    {
-        return $this->first_name . ' ' . $this->last_name;
     }
 }

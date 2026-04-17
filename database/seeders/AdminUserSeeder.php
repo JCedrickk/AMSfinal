@@ -4,26 +4,37 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\AlumniProfile;
+use App\Models\Profile;
 use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('admin123'),
-            'role' => 'admin',
-            'status' => 'approved',
-        ]);
+        // Check if admin already exists
+        $user = User::where('email', 'admin@admin.com')->first();
+        
+        if (!$user) {
+            $user = User::create([
+                'first_name' => 'Admin',
+                'last_name' => 'User',
+                'email' => 'admin@admin.com',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'status' => 'approved'
+            ]);
 
-        AlumniProfile::create([
-            'user_id' => $admin->user_id,
-            'full_name' => 'Admin User',
-            'course' => 'Information Technology',
-            'year_graduated' => 2020,
-        ]);
+            Profile::create([
+                'user_id' => $user->id,
+                'course' => 'Administration',
+                'year_graduated' => 2024,
+                'contact_number' => '09123456789',
+                'job_title' => 'System Administrator'
+            ]);
+            
+            $this->command->info('Admin user created successfully!');
+        } else {
+            $this->command->info('Admin user already exists!');
+        }
     }
 }

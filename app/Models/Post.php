@@ -2,93 +2,81 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    protected $primaryKey = 'post_id';
-    protected $table = 'posts';
-    
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'content',
+        'image',
         'status',
-        'image_path',
-        'location',
-        'type',
-        'is_pinned',
-        'pinned_at',
-        'event_date',
-        'company',
-        'salary',
+        'edit_pending_content',
+        'edit_status'
     ];
 
     protected $casts = [
-        'is_pinned' => 'boolean',
-        'pinned_at' => 'datetime',
-        'event_date' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
-    }
-
-    public function author()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function comments()
     {
-        return $this->hasMany(Comment::class, 'post_id', 'post_id');
+        return $this->hasMany(Comment::class, 'post_id', 'id');
     }
 
     public function likes()
     {
-        return $this->belongsToMany(User::class, 'likes', 'post_id', 'user_id')
-                    ->withTimestamps();
+        return $this->hasMany(Like::class, 'post_id', 'id');
     }
 
-    public function attendees()
+    public function isApproved()
     {
-        return $this->belongsToMany(User::class, 'event_attendees', 'post_id', 'user_id')
-                    ->withTimestamps();
-    }
-
-    public function applicants()
-    {
-        return $this->belongsToMany(User::class, 'job_applications', 'post_id', 'user_id')
-                    ->withTimestamps();
-    }
-
-    public function likeCount()
-    {
-        return $this->likes()->count();
-    }
-
-    public function commentCount()
-    {
-        return $this->comments()->count();
-    }
-
-    public function scopeApproved($query)
-    {
-        return $query->where('status', 'approved');
-    }
-
-    public function scopePinned($query)
-    {
-        return $query->where('is_pinned', true);
+        return $this->status === 'approved';
     }
     
-    public function isEvent()
+    public function hasPendingEdit()
     {
-        return $this->type === 'event';
+        return $this->edit_status === 'pending';
     }
-    
-    public function isJob()
+
+    public function getImageUrlAttribute()
     {
-        return $this->type === 'job';
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return null;
+    }
+
+    // Accessor for formatted created date
+    public function getFormattedCreatedAtAttribute()
+    {
+        return $this->created_at->format('F j, Y g:i A');
+    }
+
+    // Accessor for relative time
+    public function getRelativeTimeAttribute()
+    {
+        return $this->created_at->diffForHumans();
+    }
+
+    // Accessor for short date
+    public function getShortDateAttribute()
+    {
+        return $this->created_at->format('M d, Y');
+    }
+
+    // Accessor for time only
+    public function getTimeOnlyAttribute()
+    {
+        return $this->created_at->format('g:i A');
     }
 }

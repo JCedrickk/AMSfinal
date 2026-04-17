@@ -1,4 +1,5 @@
 <?php
+// app/Models/AlumniProfile.php
 
 namespace App\Models;
 
@@ -11,18 +12,16 @@ class AlumniProfile extends Model
     
     protected $fillable = [
         'user_id',
-        'full_name',
+        'first_name',
+        'last_name',
+        'email',
         'course',
         'year_graduated',
-        'contact_number',
-        'job_title',
-        'company',
-        'facebook_link',
-        'twitter_link',
-        'instagram_link',
-        'linkedin_link',
+        'date_of_birth',
         'profile_picture',
         'bio',
+        'contact_number',
+        'edit_status',
     ];
 
     public function user()
