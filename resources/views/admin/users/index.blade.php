@@ -17,8 +17,8 @@
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('admin.users.pending') }}" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm font-semibold hover:bg-amber-200 transition">
-                        <i class="fas fa-clock mr-1"></i> Pending Approvals
+                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition">
+                        <i class="fas fa-arrow-left mr-1"></i> Back
                     </a>
                 </div>
             </div>

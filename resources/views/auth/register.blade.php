@@ -55,7 +55,7 @@
                 <!-- Birthday -->
                 <div class="mb-3">
                     <label for="birthday" class="form-label">
-                        <i class="fas fa-birthday-cake me-2"></i>Birthday (Optional)
+                        <i class="fas fa-birthday-cake me-2"></i>Birthday
                     </label>
                     <input type="date" class="form-control glass-input" 
                         id="birthday" name="birthday" value="{{ old('birthday') }}">
@@ -114,15 +114,21 @@
                 <!-- Course and Year Fields Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Course -->
-                    <div>
-                        <label for="course" class="block text-sm font-medium text-[#2c3e66] mb-2">
-                            <i class="fas fa-book mr-2"></i>Course
+                    <div class="mb-3">
+                        <label for="course_id" class="form-label">
+                            <i class="fas fa-book me-2"></i>Course
                         </label>
-                        <input type="text" id="course" name="course" value="{{ old('course') }}" required
-                               class="glass-input w-full px-4 py-3 rounded-xl @error('course') border-red-500 ring-red-500 @enderror"
-                               placeholder="e.g., Computer Science">
-                        @error('course')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <select class="form-control glass-input @error('course_id') is-invalid @enderror" 
+                                id="course_id" name="course_id" required>
+                            <option value="">Select Course</option>
+                            @foreach($courses as $course)
+                                <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                                    {{ $course->name }} ({{ $course->code }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('course_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     
@@ -134,7 +140,7 @@
                         <select id="year_graduated" name="year_graduated" required
                                 class="glass-input w-full px-4 py-3 rounded-xl @error('year_graduated') border-red-500 ring-red-500 @enderror">
                             <option value="">Select Year</option>
-                            @for($year = date('Y'); $year >= date('Y')-50; $year--)
+                            @for($year = 2026; $year >= 2026 - 50; $year--)
                                 <option value="{{ $year }}" {{ old('year_graduated') == $year ? 'selected' : '' }}>
                                     {{ $year }}
                                 </option>

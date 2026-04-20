@@ -14,21 +14,18 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
-        // Filter by type - Updated to include admin invitation types
+        // Filter by type - Added admin_announcement
         $userNotifications = Auth::user()->notifications()
             ->whereIn('type', [
                 'account_approved', 
                 'account_rejected', 
-                'user_registration',
-                'admin_invitation',
-                'admin_invitation_accepted',
-                'admin_invitation_declined'
+                'user_registration',  // Added this
             ])
             ->orderBy('created_at', 'desc')
             ->get();
         
         $postNotifications = Auth::user()->notifications()
-            ->whereIn('type', ['post_approved', 'post_rejected', 'post_pending', 'post_edit_approved', 'post_edit_rejected', 'post_edit_pending'])
+            ->whereIn('type', ['post_approved', 'post_rejected', 'post_pending', 'post_edit_approved', 'post_edit_rejected', 'post_edit_pending', 'admin_announcement'])
             ->orderBy('created_at', 'desc')
             ->get();
         

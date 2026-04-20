@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Post;
+use App\Models\Profile;
+use App\Models\Course;
 use App\Models\AlumniIdRequest;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -27,12 +30,40 @@ class AdminController extends Controller
         $pendingEdits = Post::where('edit_status', 'pending')->count();
         $pendingIdRequests = AlumniIdRequest::where('status', 'pending')->count();
         $totalAlumni = User::where('role', 'user')->where('status', 'approved')->count();
-        $totalAdmins = User::where('role', 'admin')->count(); // ADD THIS LINE
+        $totalAdmins = User::where('role', 'admin')->count();
+        
+        // Get course statistics
+        $courses = Course::where('is_active', true)->orderBy('sort_order')->get();
+        $courseStats = [];
+        
+        foreach ($courses as $course) {
+            $count = Profile::where('course_id', $course->id)
+                ->whereHas('user', function($query) {
+                    $query->where('role', 'user')->where('status', 'approved');
+                })
+                ->count();
+            
+            if ($count > 0) {
+                $courseStats[] = [
+                    'course_name' => $course->name,
+                    'course_code' => $course->code,
+                    'total' => $count
+                ];
+            }
+        }
+        
+        // Sort by total descending
+        usort($courseStats, function($a, $b) {
+            return $b['total'] - $a['total'];
+        });
         
         $recentUsers = User::with('profile')->where('role', 'user')->latest()->take(5)->get();
         $recentPosts = Post::with('user')->latest()->take(5)->get();
         
-        return view('admin.dashboard', compact('pendingUsers', 'pendingPosts', 'pendingEdits', 'pendingIdRequests', 'totalAlumni', 'totalAdmins', 'recentUsers', 'recentPosts'));
+        return view('admin.dashboard', compact(
+            'pendingUsers', 'pendingPosts', 'pendingEdits', 'pendingIdRequests', 
+            'totalAlumni', 'totalAdmins', 'courseStats', 'recentUsers', 'recentPosts'
+        ));
     }
 
     public function pendingUsers()
@@ -48,7 +79,7 @@ class AdminController extends Controller
         Notification::create([
             'user_id' => $user->id,
             'type' => 'account_approved',
-            'message' => '✅ Your account has been approved! You can now login to the Alumni Management System.',
+            'message' => 'Your account has been approved! You can now login to the Alumni Management System.',
             'is_read' => false
         ]);
         
@@ -62,7 +93,7 @@ class AdminController extends Controller
         Notification::create([
             'user_id' => $user->id,
             'type' => 'account_rejected',
-            'message' => '❌ Your account has been rejected. Please contact the admin for more information.',
+            'message' => 'Your account has been rejected. Please contact the admin for more information.',
             'is_read' => false
         ]);
         
@@ -89,18 +120,22 @@ class AdminController extends Controller
         return back()->with('success', 'Post approved.');
     }
 
-    public function rejectPost(Post $post)
+   public function rejectPost(Request $request, Post $post)
     {
+        $request->validate([
+            'rejection_reason' => 'required|string|min:5'
+        ]);
+        
         $post->update(['status' => 'rejected']);
         
         Notification::create([
             'user_id' => $post->user_id,
             'type' => 'post_rejected',
-            'message' => 'Your post has been rejected.',
+            'message' => 'Your post has been rejected. Reason: ' . $request->rejection_reason,
             'is_read' => false
         ]);
         
-        return back()->with('success', 'Post rejected.');
+        return back()->with('success', 'Post rejected. User has been notified.');
     }
 
     // ========== PENDING EDITS METHODS ==========
@@ -134,8 +169,12 @@ class AdminController extends Controller
         return back()->with('success', 'Post edit approved.');
     }
 
-    public function rejectEdit(Post $post)
+    public function rejectEdit(Request $request, Post $post)
     {
+        $request->validate([
+            'rejection_reason' => 'required|string|min:5'
+        ]);
+
         $post->update([
             'edit_pending_content' => null,
             'edit_status' => 'rejected'
@@ -144,7 +183,7 @@ class AdminController extends Controller
         Notification::create([
             'user_id' => $post->user_id,
             'type' => 'post_edit_rejected',
-            'message' => 'Your post edit request has been rejected. The post remains unchanged.',
+            'message' => 'Your post has been rejected. Reason: ' . $request->rejection_reason,
             'is_read' => false
         ]);
         
@@ -156,13 +195,76 @@ class AdminController extends Controller
     public function allUsers()
     {
         $users = User::with('profile')->where('role', 'user')->orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.users.index', compact('users'));
+        
+        // Add stats
+        $totalUsers = User::where('role', 'user')->count();
+        $totalAdmins = User::where('role', 'admin')->count();
+        $totalRegularUsers = User::where('role', 'user')->count();
+        
+        return view('admin.users.index', compact('users', 'totalUsers', 'totalAdmins', 'totalRegularUsers'));
     }
 
     public function deleteUser(User $user)
     {
-        $user->delete();
-        return back()->with('success', 'User deleted.');
+        // Prevent admin from deleting their own account
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+        
+        // Soft delete the account (archive it)
+        $user->delete(); // This sets deleted_at timestamp
+        
+        // Notify the user
+        Notification::create([
+            'user_id' => $user->id,
+            'type' => 'account_archived',
+            'message' => 'Your account has been archived by an administrator. It will be permanently deleted after 30 days. You can contact support to restore your account within this period.',
+            'is_read' => false
+        ]);
+        
+        // Notify other admins
+        $admins = User::where('role', 'admin')->where('id', '!=', auth()->id())->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'account_archived_by_admin',
+                'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' has archived the account of ' . $user->first_name . ' ' . $user->last_name . '. It will be permanently deleted after 30 days.',
+                'is_read' => false
+            ]);
+        }
+        
+        return back()->with('success', 'User account has been archived. It will be permanently deleted after 30 days.');
+    }
+
+    public function restoreUser($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        
+        // Check if within 30 days
+        if ($user->deleted_at && Carbon::parse($user->deleted_at)->diffInDays(now()) <= 30) {
+            $user->restore();
+            
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'account_restored',
+                'message' => 'Your account has been restored by an administrator. You can now login again.',
+                'is_read' => false
+            ]);
+            
+            return back()->with('success', 'User account has been restored successfully.');
+        }
+        
+        return back()->with('error', 'Cannot restore account. More than 30 days have passed.');
+    }
+
+    public function archivedUsers()
+    {
+        $archivedUsers = User::onlyTrashed()
+            ->where('role', 'user')
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(20);
+        
+        return view('admin.users.archived', compact('archivedUsers'));
     }
 
     public function removeAdmin(Request $request, User $user)
@@ -219,5 +321,70 @@ class AdminController extends Controller
         $totalAdmins = User::where('role', 'admin')->count();
         
         return view('admin.users.admins', compact('admins', 'totalAdmins'));
+    }
+
+    // ========== COURSE MANAGEMENT ==========
+    
+    public function courses()
+    {
+        $courses = Course::orderBy('sort_order')->get();
+        return view('admin.courses.index', compact('courses'));
+    }
+
+    public function createCourse()
+    {
+        return view('admin.courses.create');
+    }
+
+    public function storeCourse(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:courses',
+            'code' => 'nullable|string|max:50',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        Course::create([
+            'name' => $request->name,
+            'code' => $request->code,
+            'sort_order' => $request->sort_order ?? 0,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.courses')->with('success', 'Course added successfully.');
+    }
+
+    public function editCourse(Course $course)
+    {
+        return view('admin.courses.edit', compact('course'));
+    }
+
+    public function updateCourse(Request $request, Course $course)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:courses,name,' . $course->id,
+            'code' => 'nullable|string|max:50',
+            'sort_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $course->update([
+            'name' => $request->name,
+            'code' => $request->code,
+            'sort_order' => $request->sort_order ?? 0,
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return redirect()->route('admin.courses')->with('success', 'Course updated successfully.');
+    }
+
+    public function deleteCourse(Course $course)
+    {
+        if ($course->profiles()->count() > 0) {
+            return back()->with('error', 'Cannot delete course because it has alumni members.');
+        }
+        
+        $course->delete();
+        return redirect()->route('admin.courses')->with('success', 'Course deleted successfully.');
     }
 }

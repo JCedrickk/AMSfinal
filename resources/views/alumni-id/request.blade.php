@@ -135,7 +135,7 @@
                         <ul class="space-y-2 text-sm text-[#4a5568]">
                             <li class="flex items-start">
                                 <i class="fas fa-building mr-3 mt-0.5 text-[#2c3e66]"></i>
-                                <span>Go to the Alumni Office at Brokenshire College campus</span>
+                                <span>Go to the Alumni Office at University of Mindanao Matina Campus</span>
                             </li>
                             <li class="flex items-start">
                                 <i class="fas fa-money-bill-wave mr-3 mt-0.5 text-emerald-600"></i>

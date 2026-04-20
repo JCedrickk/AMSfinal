@@ -24,19 +24,6 @@
             </div>
         </div>
         
-        <!-- Stats Row -->
-        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user-shield text-purple-600 text-sm"></i>
-                </div>
-                <div>
-                    <p class="text-2xl font-bold text-[#1a2a4a]">{{ $totalAdmins }}</p>
-                    <p class="text-xs text-[#4a5568]">Total Administrators</p>
-                </div>
-            </div>
-        </div>
-        
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">

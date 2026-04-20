@@ -185,7 +185,9 @@
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                @if(str_contains($notification->type, 'approved'))
+                                @if($notification->type == 'admin_announcement')
+                                    <i class="fas fa-bullhorn text-purple-500 text-sm"></i>
+                                @elseif(str_contains($notification->type, 'approved'))
                                     <i class="fas fa-check-circle text-green-500 text-sm"></i>
                                 @elseif(str_contains($notification->type, 'rejected'))
                                     <i class="fas fa-times-circle text-red-500 text-sm"></i>
@@ -215,7 +217,7 @@
                         <i class="fas fa-newspaper text-3xl text-[#2c3e66]"></i>
                     </div>
                     <p class="text-[#1a2a4a] font-medium">No post notifications</p>
-                    <p class="text-sm text-[#4a5568] mt-1">Post approval notifications will appear here.</p>
+                    <p class="text-sm text-[#4a5568] mt-1">Post approval notifications and Admin announcements will appear here.</p>
                 </div>
                 @endforelse
             </div>

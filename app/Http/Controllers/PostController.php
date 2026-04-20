@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -27,7 +28,7 @@ class PostController extends Controller
     {
         $request->validate([
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120' // Max 5MB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
         ]);
 
         $imagePath = null;
@@ -35,25 +36,46 @@ class PostController extends Controller
             $imagePath = $request->file('image')->store('post-images', 'public');
         }
 
-        $post = Post::create([
+       $post = Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
             'image' => $imagePath,
-            'status' => 'pending'
+            'status' => Auth::user()->isAdmin() ? 'approved' : 'pending',
+            'type' => Auth::user()->isAdmin() ? 'announcement' : 'regular'
         ]);
 
-        // Notify admin about new post
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
+        // If admin is posting, notify all regular users
+        if (Auth::user()->isAdmin()) {
+            $this->notifyAllUsers($post);
+        } else {
+            // Notify admin about new post from regular user
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'post_pending',
+                    'message' => 'New post needs approval from ' . Auth::user()->first_name . ' ' . Auth::user()->last_name,
+                    'is_read' => false
+                ]);
+            }
+            return back()->with('success', 'Post submitted for approval.');
+        }
+
+        return back()->with('success', 'Post published successfully. All alumni have been notified.');
+    }
+
+    private function notifyAllUsers($post)
+    {
+        $users = User::where('role', 'user')->where('status', 'approved')->get();
+        
+        foreach ($users as $user) {
             Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'post_pending',
-                'message' => 'New post needs approval from ' . Auth::user()->first_name . ' ' . Auth::user()->last_name,
+                'user_id' => $user->id,
+                'type' => 'admin_announcement',
+                'message' => 'Admin Announcement: ' . Auth::user()->first_name . ' ' . Auth::user()->last_name . ' posted: "' . Str::limit($post->content, 100) . '"',
                 'is_read' => false
             ]);
         }
-
-        return back()->with('success', 'Post submitted for approval.');
     }
 
     public function edit(Post $post)

@@ -31,39 +31,39 @@
                         </p>
                         <p class="text-sm text-[#4a5568] mb-4">
                             <i class="fas fa-book mr-1"></i>
-                            {{ $user->profile->course ?? 'Course not set' }}
+                            {{ $user->profile->course_name ?? 'Course not set' }}
                         </p>
                         
                         <!-- Contact Info -->
                         @if($user->profile && $user->profile->contact_number)
                         <div class="text-left bg-gray-50 rounded-xl p-3 mb-3">
-                            <p class="text-[#4a5568] text-xs font-semibold mb-1">📞 Contact Number</p>
+                            <p class="text-[#4a5568] text-xs font-semibold mb-1">Contact Number</p>
                             <p class="text-[#1a2a4a] text-sm">{{ $user->profile->contact_number }}</p>
                         </div>
                         @endif
                         
                         @if($user->profile && $user->profile->job_title)
                         <div class="text-left bg-gray-50 rounded-xl p-3 mb-3">
-                            <p class="text-[#4a5568] text-xs font-semibold mb-1">💼 Job Title</p>
+                            <p class="text-[#4a5568] text-xs font-semibold mb-1">Job Title</p>
                             <p class="text-[#1a2a4a] text-sm">{{ $user->profile->job_title }}</p>
                         </div>
                         @endif
                         
                         <!-- Email -->
                         <div class="text-left bg-gray-50 rounded-xl p-3 mb-3">
-                            <p class="text-[#4a5568] text-xs font-semibold mb-1">📧 Email</p>
+                            <p class="text-[#4a5568] text-xs font-semibold mb-1">Email</p>
                             <p class="text-[#1a2a4a] text-sm">{{ $user->email }}</p>
                         </div>
                         
                         <!-- Member Since -->
                         <div class="text-left bg-gray-50 rounded-xl p-3 mb-3">
-                            <p class="text-[#4a5568] text-xs font-semibold mb-1">📅 Member Since</p>
+                            <p class="text-[#4a5568] text-xs font-semibold mb-1">Member Since</p>
                             <p class="text-[#1a2a4a] text-sm">{{ $user->created_at->format('F j, Y') }}</p>
                         </div>
                         
                         <!-- Account Status -->
                         <div class="text-left bg-gray-50 rounded-xl p-3 mb-3">
-                            <p class="text-[#4a5568] text-xs font-semibold mb-1">📊 Account Status</p>
+                            <p class="text-[#4a5568] text-xs font-semibold mb-1">Account Status</p>
                             <div class="mt-1">
                                 @if($user->status === 'approved')
                                     <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold">Approved</span>
@@ -187,7 +187,7 @@
                                     </small>
                                     <small class="text-xs text-[#4a5568]">
                                         <i class="fas fa-book mr-1"></i>
-                                        {{ $user->profile->course ?? 'Course not set' }}
+                                        {{ $user->profile->course_name ?? 'Course not set' }}
                                     </small>
                                 </div>
                             </div>

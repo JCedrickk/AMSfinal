@@ -10,22 +10,23 @@ class Profile extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'profile_picture',
-        'course',
-        'year_graduated',
-        'birthday',
-        'contact_number',
-        'job_title',
-        'address',
-        'facebook',
-        'twitter',
-        'instagram',
-        'linkedin',
-        'github',
-        'show_contact_number',
-        'show_birthday',
-        'show_address',
+            'user_id',
+            'course_id',
+            'course', // Keep for backward compatibility
+            'profile_picture',
+            'year_graduated',
+            'birthday',
+            'contact_number',
+            'job_title',
+            'address',
+            'show_contact_number',
+            'show_birthday',
+            'show_address',
+            'facebook',
+            'twitter',
+            'instagram',
+            'linkedin',
+            'github'
     ];
 
     public function user()
@@ -79,5 +80,19 @@ class Profile extends Model
             return 'https://github.com/' . $this->github;
         }
         return $this->github;
+    }
+
+    public function courseData()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
+    }
+
+    // Accessor for course name
+    public function getCourseNameAttribute()
+    {
+        if ($this->courseData) {
+            return $this->courseData->name;
+        }
+        return $this->course ?? 'Not specified';
     }
 }

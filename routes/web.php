@@ -46,6 +46,14 @@ Route::middleware('auth')->group(function () {
     // Profile - View other user's profile
     Route::get('/profile/user/{user}', [ProfileController::class, 'showOther'])->name('profile.show.other');
     
+    // Change Password
+    Route::get('/change-password', [ChangePasswordController::class, 'showChangeForm'])->name('change-password');
+    Route::post('/change-password', [ChangePasswordController::class, 'update'])->name('change-password.update');
+
+    // Account Deletion
+    Route::get('/delete-account', [AccountDeletionController::class, 'showDeletionForm'])->name('account.delete');
+    Route::post('/delete-account', [AccountDeletionController::class, 'verifyAndDelete'])->name('account.delete.process');
+    
     // Alumni ID
     Route::get('/alumni-id/request', [AlumniIDController::class, 'showRequestForm'])->name('alumni-id.request');
     Route::post('/alumni-id/request', [AlumniIDController::class, 'submitRequest'])->name('alumni-id.submit');
@@ -58,7 +66,13 @@ Route::middleware('auth')->group(function () {
     // Directory & Search
     Route::get('/directory', [ProfileController::class, 'directory'])->name('directory');
     Route::get('/search', [ProfileController::class, 'search'])->name('search');
-
+    
+    // API Routes
+    Route::get('/api/notifications/unread-count', function() {
+        return response()->json([
+            'count' => auth()->user()->notifications()->where('is_read', false)->count()
+        ]);
+    })->middleware('auth');
     
     // Admin routes
     Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
@@ -72,7 +86,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/users', [AdminController::class, 'allUsers'])->name('users.index');
         Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
         Route::post('/users/{user}/remove-admin', [AdminController::class, 'removeAdmin'])->name('users.remove-admin');
-        Route::get('/admins', [AdminController::class, 'adminList'])->name('users.admins'); // ADD THIS LINE
+        Route::get('/admins', [AdminController::class, 'adminList'])->name('users.admins');
+        Route::get('/users/archived', [AdminController::class, 'archivedUsers'])->name('users.archived');
+        Route::post('/users/{id}/restore', [AdminController::class, 'restoreUser'])->name('users.restore');
         
         // Post Management
         Route::get('/posts/pending', [AdminController::class, 'pendingPosts'])->name('posts.pending');
@@ -89,12 +105,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/id-requests/{idRequest}/approve', [AlumniIDController::class, 'approveRequest'])->name('id-requests.approve');
         Route::post('/id-requests/{idRequest}/reject', [AlumniIDController::class, 'rejectRequest'])->name('id-requests.reject');
         Route::get('/id-requests', [AlumniIDController::class, 'allRequests'])->name('id-requests.index');
+        
+        // Course Management
+        Route::get('/courses', [AdminController::class, 'courses'])->name('courses');
+        Route::get('/courses/create', [AdminController::class, 'createCourse'])->name('courses.create');
+        Route::post('/courses', [AdminController::class, 'storeCourse'])->name('courses.store');
+        Route::get('/courses/{course}/edit', [AdminController::class, 'editCourse'])->name('courses.edit');
+        Route::put('/courses/{course}', [AdminController::class, 'updateCourse'])->name('courses.update');
+        Route::delete('/courses/{course}', [AdminController::class, 'deleteCourse'])->name('courses.delete');
     });
-    // Change Password
-    Route::get('/change-password', [ChangePasswordController::class, 'showChangeForm'])->name('change-password');
-    Route::post('/change-password', [ChangePasswordController::class, 'update'])->name('change-password.update');
-
-     // Account Deletion
-    Route::get('/delete-account', [AccountDeletionController::class, 'showDeletionForm'])->name('account.delete');
-    Route::post('/delete-account', [AccountDeletionController::class, 'verifyAndDelete'])->name('account.delete.process');
 });

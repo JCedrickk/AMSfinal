@@ -18,11 +18,11 @@
                            placeholder="Search by name or course..." value="{{ request('search') }}">
                 </div>
                 <div class="md:col-span-1">
-                    <select name="course" class="glass-input w-full rounded-xl px-4 py-2.5">
+                    <select name="course_id" class="glass-input w-full rounded-xl px-4 py-2.5">
                         <option value="">All Courses</option>
                         @foreach($courses ?? [] as $course)
-                            <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>
-                                {{ $course }}
+                            <option value="{{ $course->id }}" {{ request('course_id') == $course->id ? 'selected' : '' }}>
+                                {{ $course->name }} ({{ $course->code }})
                             </option>
                         @endforeach
                     </select>

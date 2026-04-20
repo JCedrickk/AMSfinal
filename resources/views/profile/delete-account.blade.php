@@ -11,11 +11,8 @@
                     <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                         <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
                     </div>
-                    <h4 class="font-display font-bold text-lg text-red-700">Warning: This action cannot be undone!</h4>
+                    <h4 class="font-display font-bold text-lg text-red-700">Warning: Delete Account</h4>
                 </div>
-                <p class="text-red-600 text-sm ml-14">
-                    Deleting your account is permanent and will remove all your data from our system.
-                </p>
             </div>
         </div>
     </div>
@@ -83,14 +80,14 @@
     <div class="glass-card rounded-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
             <h5 class="font-display font-semibold text-lg text-[#1a2a4a]">
-                <i class="fas fa-shield-alt mr-2"></i>Confirm Account Deletion
+                <i class="fas fa-shield-alt mr-2"></i>Confirm Account Archival
             </h5>
         </div>
         <div class="p-6">
-            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-4 mb-6">
+            <div class="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-4 mb-6">
                 <div class="flex items-center gap-2">
-                    <i class="fas fa-info-circle text-blue-500"></i>
-                    <span class="text-blue-700 text-sm">Please complete the following steps to verify account deletion.</span>
+                    <i class="fas fa-info-circle text-amber-500"></i>
+                    <span class="text-amber-700 text-sm">Please complete the following steps to delete your account.</span>
                 </div>
             </div>
             
@@ -130,7 +127,7 @@
                     <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" id="confirmCheck" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500" required>
                         <span class="text-sm text-[#4a5568]">
-                            I understand that this action is <strong class="text-red-600">permanent and irreversible</strong>
+                            I understand that my account will be <strong class="text-red-600">archived for 30 days</strong> before permanent deletion.
                         </span>
                     </label>
                 </div>
@@ -138,34 +135,37 @@
                 <!-- Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button type="submit" class="btn-danger flex-1 py-2.5 rounded-xl font-semibold text-center" id="deleteButton" disabled>
-                        <i class="fas fa-trash-alt mr-2"></i>Permanently Delete My Account
+                        <i class="fas fa-trash mr-2"></i>Delete My Account
                     </button>
                     <a href="{{ route('profile.show') }}" class="btn-outline flex-1 py-2.5 rounded-xl font-semibold text-center">
-                        <i class="fas fa-arrow-left mr-2"></i>Cancel & Keep My Account
+                        <i class="fas fa-arrow-left mr-2"></i>Cancel
                     </a>
                 </div>
             </form>
         </div>
     </div>
-    
-    <!-- Need Help Card -->
-    <div class="glass-card rounded-2xl mt-6 overflow-hidden">
-        <div class="p-6">
-            <h6 class="font-semibold text-[#1a2a4a] mb-2 flex items-center gap-2">
-                <i class="fas fa-question-circle text-[#2c3e66]"></i>
-                Need Help?
-            </h6>
-            <p class="text-sm text-[#4a5568]">
-                If you're experiencing issues or have questions about account deletion, please contact our support team at 
-                <strong class="text-[#2c3e66]">support@alumni.com</strong> or call us at <strong class="text-[#2c3e66]">(082) 123-4567</strong>.
-            </p>
-        </div>
-    </div>
+
+    <!-- Restoration Info -->
+            <div class="p-6">
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 mb-4">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-blue-700">30-Day Restoration Period</p>
+                            <p class="text-xs text-blue-600">
+                                Your account will be archived for 30 days. During this period, you can simply 
+                                <strong>log in with your email and password</strong> to restore your account automatically. 
+                                After 30 days, your account and all data will be permanently deleted.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 </div>
 
 @push('scripts')
 <script>
-    // Enable delete button only when checkbox is checked and confirmation text is correct
     const confirmCheck = document.getElementById('confirmCheck');
     const confirmationText = document.getElementById('confirmation_text');
     const deleteButton = document.getElementById('deleteButton');
@@ -178,7 +178,6 @@
         
         deleteButton.disabled = !(isChecked && isCorrectText && hasPassword);
         
-        // Update button styling
         if (deleteButton.disabled) {
             deleteButton.classList.add('opacity-50', 'cursor-not-allowed');
             deleteButton.classList.remove('hover:transform', 'hover:shadow-lg');
@@ -192,9 +191,8 @@
     confirmationText.addEventListener('keyup', validateForm);
     passwordInput.addEventListener('keyup', validateForm);
     
-    // Additional confirmation on form submit
     document.getElementById('deleteAccountForm').addEventListener('submit', function(e) {
-        if (!confirm('⚠️ WARNING: This action is permanent and cannot be undone!\n\nAre you absolutely sure you want to delete your account?')) {
+        if (!confirm('WARNING: Your account will be archived for 30 days before permanent deletion.\n\nAre you sure you want to proceed?')) {
             e.preventDefault();
         }
     });

@@ -7,6 +7,7 @@ use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Course;
 
 class ProfileController extends Controller
 {
@@ -20,13 +21,14 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = Auth::user()->load('profile');
-        return view('profile.edit', compact('user'));
+        $courses = Course::orderBy('sort_order')->get();
+        return view('profile.edit', compact('user', 'courses'));
     }
 
     public function update(Request $request)
     {
         $request->validate([
-            'course' => 'required|string|max:255',
+            'course_id' => 'required|exists:courses,id',
             'year_graduated' => 'required|integer',
             'birthday' => 'nullable|date',
             'contact_number' => 'nullable|string|max:20',
@@ -44,7 +46,9 @@ class ProfileController extends Controller
         ]);
 
         $profile = Auth::user()->profile;
+        $course = Course::find($request->course_id);
         
+        // Handle profile picture upload...
         if ($request->hasFile('profile_picture')) {
             if ($profile->profile_picture) {
                 Storage::disk('public')->delete($profile->profile_picture);
@@ -53,7 +57,8 @@ class ProfileController extends Controller
             $profile->profile_picture = $path;
         }
         
-        $profile->course = $request->course;
+        $profile->course_id = $request->course_id;
+        $profile->course = $course->name; // Keep for backward compatibility
         $profile->year_graduated = $request->year_graduated;
         $profile->birthday = $request->birthday;
         $profile->contact_number = $request->contact_number;
@@ -74,12 +79,12 @@ class ProfileController extends Controller
 
     public function directory()
     {
-        $alumni = User::with('profile')
+        $alumni = User::with('profile.courseData')
             ->where('role', 'user')
             ->where('status', 'approved')
             ->paginate(20);
         
-        $courses = Profile::distinct()->pluck('course');
+        $courses = Course::orderBy('sort_order')->get();
         $years = Profile::distinct()->orderBy('year_graduated', 'desc')->pluck('year_graduated');
         
         return view('directory', compact('alumni', 'courses', 'years'));
@@ -87,14 +92,14 @@ class ProfileController extends Controller
 
     public function search(Request $request)
     {
-        if (!$request->filled('search') && !$request->filled('course') && !$request->filled('year')) {
+        if (!$request->filled('search') && !$request->filled('course_id') && !$request->filled('year')) {
             $alumni = collect([]);
-            $courses = Profile::distinct()->pluck('course');
+            $courses = Course::orderBy('sort_order')->get();
             $years = Profile::distinct()->orderBy('year_graduated', 'desc')->pluck('year_graduated');
             return view('directory', compact('alumni', 'courses', 'years'));
         }
 
-        $query = User::with('profile')
+        $query = User::with('profile.courseData')
             ->where('role', 'user')
             ->where('status', 'approved');
 
@@ -102,16 +107,18 @@ class ProfileController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhereHas('profile', function($q2) use ($search) {
-                      $q2->where('course', 'like', "%{$search}%");
-                  });
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhereHas('profile', function($q2) use ($search) {
+                    $q2->whereHas('courseData', function($q3) use ($search) {
+                        $q3->where('name', 'like', "%{$search}%");
+                    });
+                });
             });
         }
 
-        if ($request->filled('course')) {
+        if ($request->filled('course_id')) {
             $query->whereHas('profile', function($q) use ($request) {
-                $q->where('course', $request->course);
+                $q->where('course_id', $request->course_id);
             });
         }
 
@@ -122,7 +129,7 @@ class ProfileController extends Controller
         }
 
         $alumni = $query->paginate(20);
-        $courses = Profile::distinct()->pluck('course');
+        $courses = Course::orderBy('sort_order')->get();
         $years = Profile::distinct()->orderBy('year_graduated', 'desc')->pluck('year_graduated');
 
         return view('directory', compact('alumni', 'courses', 'years'));

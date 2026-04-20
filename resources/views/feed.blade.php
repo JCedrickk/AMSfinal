@@ -108,16 +108,18 @@
             @php
                 $userLiked = $post->likes->contains('user_id', auth()->id());
             @endphp
-            <div class="glass-card rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+            
+            <!-- ADDED: id="post-{{ $post->id }}" for anchor scrolling after comment -->
+            <div id="post-{{ $post->id }}" class="glass-card rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
                 <div class="p-6">
-                    <!-- Post Header -->
+                   <!-- Post Header -->
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($post->user->profile && $post->user->profile->profile_picture)
                                     <img src="{{ asset('storage/' . $post->user->profile->profile_picture) }}" 
-                                         alt="Profile" 
-                                         class="w-12 h-12 rounded-full object-cover">
+                                        alt="Profile" 
+                                        class="w-12 h-12 rounded-full object-cover">
                                 @else
                                     <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#2c3e66] to-[#4a627a] flex items-center justify-center">
                                         <i class="fas fa-user text-white text-lg"></i>
@@ -125,12 +127,21 @@
                                 @endif
                             </div>
                             <div>
-                                <!-- Clickable Author Name - Fixed with url() helper -->
-                                <a href="{{ url('/profile/user/' . $post->user->id) }}" class="hover:underline">
-                                    <h6 class="font-semibold text-[#1a2a4a] hover:text-[#2c3e66] transition-colors">
-                                        {{ $post->user->first_name }} {{ $post->user->last_name }}
-                                    </h6>
-                                </a>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <!-- Clickable Author Name -->
+                                    <a href="{{ url('/profile/user/' . $post->user->id) }}" class="hover:underline">
+                                        <h6 class="font-semibold text-[#1a2a4a] hover:text-[#2c3e66] transition-colors">
+                                            {{ $post->user->first_name }} {{ $post->user->last_name }}
+                                        </h6>
+                                    </a>
+                                    
+                                    <!-- Admin Badge - Shows if user is admin -->
+                                    @if($post->user->isAdmin())
+                                        <span class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-user-shield mr-1 text-xs"></i>
+                                        </span>
+                                    @endif
+                                </div>
                                 <div class="flex flex-wrap gap-2 mt-1">
                                     <small class="text-xs text-[#4a5568]">
                                         <i class="fas fa-graduation-cap mr-1"></i>
@@ -157,7 +168,16 @@
                             </small>
                         </div>
                     </div>
-                    
+
+                    <!-- Official Announcement Badge (optional - for admin posts only) -->
+                    @if($post->user->isAdmin())
+                        <div class="mb-3">
+                            <span class="inline-flex items-center px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold">
+                                <i class="fas fa-bullhorn mr-1"></i> Official Announcement
+                            </span>
+                        </div>
+                    @endif
+
                     <!-- Post Content -->
                     <div class="mb-4">
                         <p class="text-[#1a2a4a] leading-relaxed">{{ $post->content }}</p>
@@ -233,12 +253,12 @@
                             </div>
                             @endforeach
                             
-                            <!-- Add Comment Form -->
-                            <form action="{{ route('posts.comment', $post) }}" method="POST" class="mt-3">
+                            <!-- ADDED: #post-{{ $post->id }} anchor to stay on same post after comment -->
+                            <form action="{{ route('posts.comment', $post) }}#post-{{ $post->id }}" method="POST" class="mt-3" id="comment-form-{{ $post->id }}">
                                 @csrf
                                 <div class="flex gap-2">
                                     <input type="text" name="comment" class="glass-input flex-1 rounded-xl px-3 py-2 text-sm" 
-                                           placeholder="Write a comment..." required>
+                                        placeholder="Write a comment..." required>
                                     <button type="submit" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">
                                         <i class="fas fa-paper-plane"></i>
                                     </button>

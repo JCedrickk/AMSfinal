@@ -158,11 +158,17 @@
                     <a href="{{ route('alumni-id.request') }}" class="text-slate-600 hover:text-indigo-600 transition-colors">
                         <i class="fas fa-id-card mr-2"></i>Alumni ID
                     </a>
-                    <a href="{{ route('notifications.index') }}" class="relative text-slate-600 hover:text-indigo-600 transition-colors">
-                        <i class="fas fa-bell text-xl"></i>
-                        @php $unreadCount = Auth::user()->notifications->where('is_read', false)->count(); @endphp
+                    <a href="{{ route('notifications.index') }}" class="relative">
+                        <i class="fas fa-bell text-xl text-slate-600 hover:text-indigo-600 transition-colors"></i>
+                        @php
+                            $unreadCount = Auth::user()->notifications()->where('is_read', false)->count();
+                        @endphp
                         @if($unreadCount > 0)
-                            <span class="absolute -top-1 -right-2 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">{{ $unreadCount }}</span>
+                            <span id="notification-badge" class="absolute -top-2 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[18px] h-[18px]">
+                                {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                            </span>
+                        @else
+                            <span id="notification-badge" class="hidden"></span>
                         @endif
                     </a>
                 </div>

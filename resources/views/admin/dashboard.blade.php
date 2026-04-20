@@ -4,7 +4,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="space-y-6">
         <!-- Stats Cards Row 1 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
             <a href="{{ route('admin.users.pending') }}" class="glass-card rounded-2xl p-4 text-center hover:shadow-xl transition-all">
                 <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-user-clock text-xl text-[#2c3e66]"></i>
@@ -53,6 +53,87 @@
                 <h3 class="text-2xl font-bold text-[#1a2a4a]">{{ $totalAdmins }}</h3>
                 <p class="text-xs text-[#4a5568] mt-1">Total Admins</p>
             </a>
+
+            <!-- Archived Users Card - CLICKABLE -->
+            <a href="{{ route('admin.users.archived') }}" class="glass-card rounded-2xl p-4 text-center hover:shadow-xl transition-all">
+                <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-archive text-xl text-[#2c3e66]"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#1a2a4a]">{{ $archivedUsersCount ?? 0 }}</h3>
+                <p class="text-xs text-[#4a5568] mt-1">Archived Users</p>
+            </a>
+        </div>
+        
+        <!-- Alumni by Course Section -->
+        <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-emerald-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-display font-semibold text-lg text-[#1a2a4a]">
+                            Alumni by Course
+                        </h5>
+                        <p class="text-xs text-[#4a5568]">Distribution of alumni across different courses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @forelse($courseStats as $courseStat)
+                        <div class="bg-gray-50 rounded-xl p-4 hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-book text-[#2c3e66] text-sm"></i>
+                                        <h6 class="font-semibold text-[#1a2a4a]">{{ $courseStat['course_name'] }}</h6>
+                                    </div>
+                                    <p class="text-xs text-[#4a5568] mt-1">Code: {{ $courseStat['course_code'] ?? 'N/A' }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-[#2c3e66]">{{ $courseStat['total'] }}</p>
+                                    <p class="text-xs text-[#4a5568]">Alumni</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-[#2c3e66] h-2 rounded-full transition-all duration-500" 
+                                         style="width: {{ $totalAlumni > 0 ? ($courseStat['total'] / $totalAlumni) * 100 : 0 }}%"></div>
+                                </div>
+                                <p class="text-xs text-[#4a5568] mt-1">
+                                    {{ $totalAlumni > 0 ? round(($courseStat['total'] / $totalAlumni) * 100, 1) : 0 }}% of total alumni
+                                </p>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-3 text-center py-8">
+                            <i class="fas fa-chart-simple text-4xl text-gray-300 mb-2"></i>
+                            <p class="text-[#4a5568]">No course data available</p>
+                        </div>
+                    @endforelse
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-layer-group text-[#2c3e66]"></i>
+                            <span class="text-sm text-[#4a5568]">Total Courses: <strong class="text-[#1a2a4a]">{{ count($courseStats) }}</strong></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-chart-line text-[#2c3e66]"></i>
+                            <span class="text-sm text-[#4a5568]">Most Popular: <strong class="text-[#1a2a4a]">
+                                @if(!empty($courseStats))
+                                    @php $mostPopular = collect($courseStats)->sortByDesc('total')->first(); @endphp
+                                    {{ $mostPopular['course_name'] ?? 'N/A' }} ({{ $mostPopular['total'] ?? 0 }} alumni)
+                                @else
+                                    N/A
+                                @endif
+                            </strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Recent Users Table with Show/Hide -->
@@ -85,7 +166,6 @@
                             $hiddenUsers = $recentUsers->skip(2);
                         @endphp
                         
-                        <!-- Visible Users (First 2) -->
                         @foreach($visibleUsers as $user)
                         <tr class="hover:bg-gray-50 transition users-row visible-user">
                             <td class="px-6 py-4 text-sm text-[#1a2a4a] font-medium">{{ $user->first_name }} {{ $user->last_name }}</td>
@@ -116,7 +196,6 @@
                         </tr>
                         @endforeach
                         
-                        <!-- Hidden Users (Rest) -->
                         @foreach($hiddenUsers as $user)
                         <tr class="hover:bg-gray-50 transition hidden-user" style="display: none;">
                             <td class="px-6 py-4 text-sm text-[#1a2a4a] font-medium">{{ $user->first_name }} {{ $user->last_name }}</td>
@@ -186,7 +265,6 @@
                             $hiddenPosts = $recentPosts->skip(2);
                         @endphp
                         
-                        <!-- Visible Posts (First 2) -->
                         @foreach($visiblePosts as $post)
                         <tr class="hover:bg-gray-50 transition posts-row visible-post">
                             <td class="px-6 py-4 text-sm text-[#1a2a4a] font-medium">{{ $post->user->first_name }} {{ $post->user->last_name }}</td>
@@ -216,7 +294,6 @@
                         </tr>
                         @endforeach
                         
-                        <!-- Hidden Posts (Rest) -->
                         @foreach($hiddenPosts as $post)
                         <tr class="hover:bg-gray-50 transition hidden-post" style="display: none;">
                             <td class="px-6 py-4 text-sm text-[#1a2a4a] font-medium">{{ $post->user->first_name }} {{ $post->user->last_name }}</td>

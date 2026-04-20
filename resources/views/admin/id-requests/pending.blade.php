@@ -1,18 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="glass-card rounded-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-[#2c3e66] rounded-xl flex items-center justify-center">
-                    <i class="fas fa-id-card text-white text-lg"></i>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-id-card text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-display font-bold text-xl text-[#1a2a4a]">
+                            Pending Alumni ID Requests
+                        </h4>
+                        <p class="text-sm text-[#4a5568] mt-0.5">Review and process alumni ID card requests</p>
+                    </div>
                 </div>
-                <div>
-                    <h4 class="font-display font-bold text-xl text-[#1a2a4a]">
-                        Pending Alumni ID Requests
-                    </h4>
-                    <p class="text-sm text-[#4a5568] mt-0.5">Review and process alumni ID card requests</p>
+                <div class="flex gap-2">
+                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition">
+                        <i class="fas fa-arrow-left mr-1"></i> Back
+                    </a>
                 </div>
             </div>
         </div>
@@ -104,9 +111,6 @@
                     <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeRejectModal({{ $request->id }})"></div>
                     
                     <div class="relative bg-white rounded-2xl max-w-md w-full mx-auto shadow-xl transform transition-all">
-                        <div class="px-6 py-4 border-b border-gray-200">
-                            <h5 class="font-display font-bold text-lg text-[#1a2a4a]">Reject ID Request</h5>
-                        </div>
                         <form action="{{ route('admin.id-requests.reject', $request) }}" method="POST">
                             @csrf
                             <div class="p-6">

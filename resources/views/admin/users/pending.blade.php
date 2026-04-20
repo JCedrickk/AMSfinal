@@ -4,15 +4,22 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="glass-card rounded-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-[#2c3e66] rounded-xl flex items-center justify-center">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-[#2c3e66] rounded-xl flex items-center justify-center">
                     <i class="fas fa-user-clock text-white text-lg"></i>
                 </div>
                 <div>
-                    <h4 class="font-display font-bold text-xl text-[#1a2a4a]">
-                        Pending User Approvals
-                    </h4>
-                    <p class="text-sm text-[#4a5568] mt-0.5">Review and approve or reject new alumni registration requests</p>
+                   <h4 class="font-display font-bold text-xl text-[#1a2a4a]">
+                            Pending User Approvals
+                        </h4>
+                        <p class="text-sm text-[#4a5568] mt-0.5">Review and approve or reject new alumni registration requests</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition">
+                        <i class="fas fa-arrow-left mr-1"></i> Back
+                    </a>
                 </div>
             </div>
         </div>
@@ -24,9 +31,8 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Full Name</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Email</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Course</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Year</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Contact</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Job Title</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Birthday</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Batch</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Registered</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-[#4a5568] uppercase tracking-wider">Actions</th>
                     </tr>
@@ -50,9 +56,8 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->email }}</td>
                         <td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->profile->course ?? 'N/A' }}</td>
+                        <<td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->profile->birthday ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->profile->year_graduated ?? 'N/A' }}</td>
-                        <td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->profile->contact_number ?? 'N/A' }}</td>
-                        <td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->profile->job_title ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-[#4a5568]">{{ $user->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2">

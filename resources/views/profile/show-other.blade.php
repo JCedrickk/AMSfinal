@@ -31,7 +31,7 @@
                         </p>
                         <p class="text-sm text-[#4a5568] mb-4">
                             <i class="fas fa-book mr-1"></i>
-                            {{ $user->profile->course ?? 'Course not set' }}
+                            {{ $user->profile->course_name ?? 'Course not set' }}
                         </p>
 
                         <!-- Address - Only show if user has address AND allows it to be shown -->
@@ -155,7 +155,7 @@
                                     </small>
                                     <small class="text-xs text-[#4a5568]">
                                         <i class="fas fa-book mr-1"></i>
-                                        {{ $user->profile->course ?? 'Course not set' }}
+                                        {{ $user->profile->course_name ?? 'Course not set' }}
                                     </small>
                                 </div>
                             </div>

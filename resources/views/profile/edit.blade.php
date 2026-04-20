@@ -67,43 +67,23 @@
 
                 <!-- Course -->
                 <div class="mb-4">
-                    <label for="course" class="block text-sm font-semibold text-[#1a2a4a] mb-2">
-                        <i class="fas fa-book mr-2"></i>Course
-                    </label>
-                    <input type="text" class="glass-input w-full rounded-xl px-4 py-2.5 @error('course') border-red-500 ring-red-500 @enderror" 
-                           id="course" name="course" value="{{ old('course', $user->profile->course ?? '') }}" required>
-                    @error('course')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                    <label class="block text-sm font-semibold text-[#1a2a4a] mb-2">Course</label>
+                    <input type="text" class="glass-input w-full rounded-xl px-4 py-2.5 bg-gray-100 cursor-not-allowed" 
+                           value="{{ $user->profile->course_name}}" disabled>
                 </div>
 
                 <!-- Year Graduated -->
                 <div class="mb-4">
-                    <label for="year_graduated" class="block text-sm font-semibold text-[#1a2a4a] mb-2">
-                        <i class="fas fa-calendar-alt mr-2"></i>Year Graduated
-                    </label>
-                    <select class="glass-input w-full rounded-xl px-4 py-2.5 @error('year_graduated') border-red-500 ring-red-500 @enderror" 
-                            id="year_graduated" name="year_graduated" required>
-                        <option value="">Select Year</option>
-                        @for($year = date('Y'); $year >= date('Y')-50; $year--)
-                            <option value="{{ $year }}" {{ old('year_graduated', $user->profile->year_graduated ?? '') == $year ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endfor
-                    </select>
-                    @error('year_graduated')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                    <label class="block text-sm font-semibold text-[#1a2a4a] mb-2">Year Graduated</label>
+                    <input type="text" class="glass-input w-full rounded-xl px-4 py-2.5 bg-gray-100 cursor-not-allowed" 
+                           value="{{ $user->profile->year_graduated}}" disabled>
                 </div>
 
                 <!-- Birthday -->
                 <div class="mb-4">
-                    <label for="birthday" class="block text-sm font-semibold text-[#1a2a4a] mb-2">
-                        <i class="fas fa-birthday-cake mr-2"></i>Birthday (Optional)
-                    </label>
-                    <input type="date" class="glass-input w-full rounded-xl px-4 py-2.5" 
-                        id="birthday" name="birthday" value="{{ old('birthday', $user->profile->birthday ?? '') }}">
-                    <p class="text-xs text-[#4a5568] mt-1">Enter your birth date</p>
+                    <label class="block text-sm font-semibold text-[#1a2a4a] mb-2">Birthday</label>
+                    <input type="text" class="glass-input w-full rounded-xl px-4 py-2.5 bg-gray-100 cursor-not-allowed" 
+                           value="{{ $user->profile->birthday}}" disabled>
                 </div>
 
                 <!-- Address -->
