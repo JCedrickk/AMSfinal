@@ -37,4 +37,5 @@ class AdminUserSeeder extends Seeder
             $this->command->info('Admin user already exists!');
         }
     }
+
 }

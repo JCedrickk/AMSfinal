@@ -13,19 +13,9 @@
         <div class="p-6">
             <!-- Search Form -->
             <form method="GET" action="{{ route('search') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="md:col-span-1">
+                <div class="md:col-span-2">
                     <input type="text" name="search" class="glass-input w-full rounded-xl px-4 py-2.5" 
                            placeholder="Search by name or course..." value="{{ request('search') }}">
-                </div>
-                <div class="md:col-span-1">
-                    <select name="course_id" class="glass-input w-full rounded-xl px-4 py-2.5">
-                        <option value="">All Courses</option>
-                        @foreach($courses ?? [] as $course)
-                            <option value="{{ $course->id }}" {{ request('course_id') == $course->id ? 'selected' : '' }}>
-                                {{ $course->name }} ({{ $course->code }})
-                            </option>
-                        @endforeach
-                    </select>
                 </div>
                 <div class="md:col-span-1">
                     <select name="year" class="glass-input w-full rounded-xl px-4 py-2.5">

@@ -10,13 +10,20 @@ use App\Models\AlumniIdRequest;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use App\Mail\AccountApprovedMail;
+use App\Mail\AccountRejectedMail;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!auth()->user() || !auth()->user()->isAdmin()) {
+            if (!Auth::user() || !Auth::user()->isAdmin()) {
                 abort(403, 'Unauthorized access. Admin only.');
             }
             return $next($request);
@@ -31,8 +38,15 @@ class AdminController extends Controller
         $pendingIdRequests = AlumniIdRequest::where('status', 'pending')->count();
         $totalAlumni = User::where('role', 'user')->where('status', 'approved')->count();
         $totalAdmins = User::where('role', 'admin')->count();
+        $archivedUsersCount = User::onlyTrashed()->where('role', 'user')->count();
         
-        // Get course statistics
+        // ID Claim Statistics
+        $claimedIdsCount = AlumniIdRequest::where('status', 'approved')->where('claimed', true)->count();
+        $unclaimedIdsCount = AlumniIdRequest::where('status', 'approved')->where('claimed', false)->count();
+        $replacementRequestsCount = AlumniIdRequest::where('remarks', 'like', '%Replacement request%')->count();
+        $totalIdRequests = AlumniIdRequest::count();
+        
+        // Course statistics
         $courses = Course::where('is_active', true)->orderBy('sort_order')->get();
         $courseStats = [];
         
@@ -52,7 +66,6 @@ class AdminController extends Controller
             }
         }
         
-        // Sort by total descending
         usort($courseStats, function($a, $b) {
             return $b['total'] - $a['total'];
         });
@@ -62,7 +75,9 @@ class AdminController extends Controller
         
         return view('admin.dashboard', compact(
             'pendingUsers', 'pendingPosts', 'pendingEdits', 'pendingIdRequests', 
-            'totalAlumni', 'totalAdmins', 'courseStats', 'recentUsers', 'recentPosts'
+            'totalAlumni', 'totalAdmins', 'archivedUsersCount',
+            'claimedIdsCount', 'unclaimedIdsCount', 'replacementRequestsCount', 'totalIdRequests',
+            'courseStats', 'recentUsers', 'recentPosts'
         ));
     }
 
@@ -74,30 +89,71 @@ class AdminController extends Controller
 
     public function approveUser(User $user)
     {
+        // Update user status
         $user->update(['status' => 'approved']);
         
+        // Send email notification to the user
+        try {
+            Mail::to($user->email)->send(new AccountApprovedMail($user));
+            $emailSent = true;
+        } catch (\Exception $e) {
+            $emailSent = false;
+            Log::error('Failed to send approval email to ' . $user->email . ': ' . $e->getMessage());
+        }
+        
+        // Create database notification
         Notification::create([
             'user_id' => $user->id,
             'type' => 'account_approved',
-            'message' => 'Your account has been approved! You can now login to the Alumni Management System.',
+            'message' => 'Your account has been approved! You can now login to the Alumni Management System.' . 
+                        ($emailSent ? ' An email confirmation has been sent to your email address.' : ''),
             'is_read' => false
         ]);
         
-        return back()->with('success', 'User approved successfully.');
+        // Notify admin who approved
+        $admins = User::where('role', 'admin')->where('id', '!=', Auth::id())->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'user_approved',
+                'message' => Auth::user()->first_name . ' ' . Auth::user()->last_name . ' approved ' . $user->first_name . ' ' . $user->last_name . '\'s account.',
+                'is_read' => false
+            ]);
+        }
+        
+        $message = 'User approved successfully.';
+        if ($emailSent) {
+            $message .= ' Email notification sent to ' . $user->email;
+        } else {
+            $message .= ' Email could not be sent. Please check mail configuration.';
+        }
+        
+        return back()->with('success', $message);
     }
 
-    public function rejectUser(User $user)
+    public function rejectUser(Request $request, User $user)
     {
+        $request->validate([
+            'remarks' => 'nullable|string'
+        ]);
+        
         $user->update(['status' => 'rejected']);
+        
+        // Send email notification
+        try {
+            Mail::to($user->email)->send(new AccountRejectedMail($user, $request->remarks));
+        } catch (\Exception $e) {
+            Log::error('Failed to send rejection email: ' . $e->getMessage());
+        }
         
         Notification::create([
             'user_id' => $user->id,
             'type' => 'account_rejected',
-            'message' => 'Your account has been rejected. Please contact the admin for more information.',
+            'message' => '❌ Your account has been rejected. Reason: ' . ($request->remarks ?? 'No reason provided'),
             'is_read' => false
         ]);
         
-        return back()->with('success', 'User rejected.');
+        return back()->with('success', 'User rejected successfully.');
     }
 
     public function pendingPosts()
@@ -207,7 +263,7 @@ class AdminController extends Controller
     public function deleteUser(User $user)
     {
         // Prevent admin from deleting their own account
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return back()->with('error', 'You cannot delete your own account.');
         }
         
@@ -223,12 +279,12 @@ class AdminController extends Controller
         ]);
         
         // Notify other admins
-        $admins = User::where('role', 'admin')->where('id', '!=', auth()->id())->get();
+        $admins = User::where('role', 'admin')->where('id', '!=', Auth::id())->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
                 'type' => 'account_archived_by_admin',
-                'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' has archived the account of ' . $user->first_name . ' ' . $user->last_name . '. It will be permanently deleted after 30 days.',
+                'message' => Auth::user()->first_name . ' ' . Auth::user()->last_name . ' has archived the account of ' . $user->first_name . ' ' . $user->last_name . '. It will be permanently deleted after 30 days.',
                 'is_read' => false
             ]);
         }
@@ -270,17 +326,17 @@ class AdminController extends Controller
     public function removeAdmin(Request $request, User $user)
     {
         // Verify the current user is an admin
-        if (!auth()->user()->isAdmin()) {
+        if (!Auth::user()->isAdmin()) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         // Verify password
-        if (!\Hash::check($request->admin_password, auth()->user()->password)) {
+        if (!Hash::check($request->admin_password, Auth::user()->password)) {
             return back()->withErrors(['admin_password' => 'Incorrect password.'])->withInput();
         }
-        
+
         // Prevent removing your own admin privileges
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return back()->with('error', 'You cannot remove your own admin privileges.');
         }
         
@@ -298,12 +354,12 @@ class AdminController extends Controller
         ]);
         
         // Notify other admins
-        $admins = User::where('role', 'admin')->where('id', '!=', auth()->id())->get();
+        $admins = User::where('role', 'admin')->where('id', '!=', Auth::id())->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
                 'type' => 'admin_privileges_removed',
-                'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' has removed admin privileges from ' . $user->first_name . ' ' . $user->last_name,
+                'message' => Auth::user()->first_name . ' ' . Auth::user()->last_name . ' has removed admin privileges from ' . $user->first_name . ' ' . $user->last_name,
                 'is_read' => false
             ]);
         }
@@ -386,5 +442,49 @@ class AdminController extends Controller
         
         $course->delete();
         return redirect()->route('admin.courses')->with('success', 'Course deleted successfully.');
+    }
+
+    public function markIdAsClaimed(AlumniIdRequest $idRequest)
+    {
+        if ($idRequest->status !== 'approved') {
+            return back()->with('error', 'Only approved ID requests can be marked as claimed.');
+        }
+        
+        $idRequest->update([
+            'claimed' => true,
+            'claimed_at' => now()
+        ]);
+        
+        // Notify the user
+        Notification::create([
+            'user_id' => $idRequest->user_id,
+            'type' => 'id_claimed',
+            'message' => 'Your Alumni ID has been marked as claimed. Thank you for visiting the Alumni Office!',
+            'is_read' => false
+        ]);
+        
+        return back()->with('success', 'ID marked as claimed successfully.');
+    }
+
+    public function markIdAsUnclaimed(AlumniIdRequest $idRequest)
+    {
+        if ($idRequest->status !== 'approved') {
+            return back()->with('error', 'Only approved ID requests can be marked as unclaimed.');
+        }
+        
+        $idRequest->update([
+            'claimed' => false,
+            'claimed_at' => null
+        ]);
+        
+        // Notify the user
+        Notification::create([
+            'user_id' => $idRequest->user_id,
+            'type' => 'id_unclaimed',
+            'message' => 'Your Alumni ID status has been updated to "Not Claimed". Please visit the Alumni Office to claim your ID.',
+            'is_read' => false
+        ]);
+        
+        return back()->with('success', 'ID marked as unclaimed successfully.');
     }
 }

@@ -9,6 +9,8 @@ use App\Http\Controllers\AlumniIDController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\AccountDeletionController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 // Welcome page - Make this the landing page
 Route::get('/', function () {
@@ -57,6 +59,7 @@ Route::middleware('auth')->group(function () {
     // Alumni ID
     Route::get('/alumni-id/request', [AlumniIDController::class, 'showRequestForm'])->name('alumni-id.request');
     Route::post('/alumni-id/request', [AlumniIDController::class, 'submitRequest'])->name('alumni-id.submit');
+    Route::post('/alumni-id/request-new', [AlumniIDController::class, 'requestNewId'])->name('alumni-id.request-new');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -70,9 +73,10 @@ Route::middleware('auth')->group(function () {
     // API Routes
     Route::get('/api/notifications/unread-count', function() {
         return response()->json([
-            'count' => auth()->user()->notifications()->where('is_read', false)->count()
+            'count' => Auth::user()->notifications()->where('is_read', false)->count()
         ]);
     })->middleware('auth');
+    
     
     // Admin routes
     Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
@@ -105,6 +109,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/id-requests/{idRequest}/approve', [AlumniIDController::class, 'approveRequest'])->name('id-requests.approve');
         Route::post('/id-requests/{idRequest}/reject', [AlumniIDController::class, 'rejectRequest'])->name('id-requests.reject');
         Route::get('/id-requests', [AlumniIDController::class, 'allRequests'])->name('id-requests.index');
+        Route::post('/id-requests/{idRequest}/mark-claimed', [AlumniIDController::class, 'markIdAsClaimed'])->name('id-requests.mark-claimed');
+        Route::post('/id-requests/{idRequest}/mark-unclaimed', [AlumniIDController::class, 'markIdAsUnclaimed'])->name('id-requests.mark-unclaimed');
         
         // Course Management
         Route::get('/courses', [AdminController::class, 'courses'])->name('courses');
@@ -113,5 +119,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/courses/{course}/edit', [AdminController::class, 'editCourse'])->name('courses.edit');
         Route::put('/courses/{course}', [AdminController::class, 'updateCourse'])->name('courses.update');
         Route::delete('/courses/{course}', [AdminController::class, 'deleteCourse'])->name('courses.delete');
+        
     });
 });

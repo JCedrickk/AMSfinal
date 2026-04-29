@@ -64,6 +64,41 @@
             </a>
         </div>
         
+        <!-- Stats Cards Row 2 - ID Claim Status -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check-circle text-xl text-green-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#1a2a4a]">{{ $claimedIdsCount ?? 0 }}</h3>
+                <p class="text-xs text-[#4a5568] mt-1">Claimed IDs</p>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-clock text-xl text-yellow-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#1a2a4a]">{{ $unclaimedIdsCount ?? 0 }}</h3>
+                <p class="text-xs text-[#4a5568] mt-1">Unclaimed IDs</p>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-exchange-alt text-xl text-blue-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#1a2a4a]">{{ $replacementRequestsCount ?? 0 }}</h3>
+                <p class="text-xs text-[#4a5568] mt-1">Replacement Requests</p>
+            </div>
+            
+            <a href="{{ route('admin.id-requests.index') }}" class="glass-card rounded-2xl p-4 text-center hover:shadow-xl transition-all">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-id-card text-xl text-purple-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-[#1a2a4a]">{{ $totalIdRequests }}</h3>
+                    <p class="text-xs text-[#4a5568] mt-1">Total ID Requests</p>
+                </a>
+        </div>
+        
         <!-- Alumni by Course Section -->
         <div class="glass-card rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200">
@@ -192,7 +227,7 @@
                                         <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition">Reject</button>
                                     </form>
                                 @endif
-                            </td>
+                            </tr>
                         </tr>
                         @endforeach
                         
@@ -264,7 +299,7 @@
                             $visiblePosts = $recentPosts->take(2);
                             $hiddenPosts = $recentPosts->skip(2);
                         @endphp
-                        
+        
                         @foreach($visiblePosts as $post)
                         <tr class="hover:bg-gray-50 transition posts-row visible-post">
                             <td class="px-6 py-4 text-sm text-[#1a2a4a] font-medium">{{ $post->user->first_name }} {{ $post->user->last_name }}</td>

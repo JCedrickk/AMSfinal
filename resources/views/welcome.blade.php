@@ -389,7 +389,7 @@
                 </div>
                 <div class="text-center md:text-right">
                     <p class="text-sm text-white/70">
-                        &copy; 2024 Alumni Management System. All rights reserved.
+                        &copy; 2026 Alumni Management System. All rights reserved.
                     </p>
                     <p class="text-sm text-white/70 mt-1">
                         Developed by Joshua Cedrick C. Palgan – IT9aL (8420)

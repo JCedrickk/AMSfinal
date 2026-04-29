@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -24,7 +24,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Fix the profile relationship - it should be hasOne, not belongsTo
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
     public function profile()
     {
         return $this->hasOne(Profile::class, 'user_id', 'id');
@@ -55,9 +60,14 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class, 'user_id', 'id');
     }
 
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
+    }
+
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'super_admin';
     }
 
     public function isApproved()

@@ -112,7 +112,7 @@
                             </small>
                         </div>
                         @if(!$notification->is_read)
-                        <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-3">
+                        <form action="{{ route('notifications.read', ['notification' => $notification->id]) }}" method="POST" class="ml-3">
                             @csrf
                             <button type="submit" class="w-8 h-8 bg-white rounded-lg text-[#2c3e66] hover:bg-gray-100 transition flex items-center justify-center" title="Mark as read">
                                 <i class="fas fa-check"></i>
@@ -158,7 +158,7 @@
                             </small>
                         </div>
                         @if(!$notification->is_read)
-                        <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-3">
+                        <form action="{{ route('notifications.read', ['notification' => $notification->id]) }}" method="POST" class="ml-3">
                             @csrf
                             <button type="submit" class="w-8 h-8 bg-white rounded-lg text-[#2c3e66] hover:bg-gray-100 transition flex items-center justify-center" title="Mark as read">
                                 <i class="fas fa-check"></i>
@@ -202,7 +202,7 @@
                             </small>
                         </div>
                         @if(!$notification->is_read)
-                        <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-3">
+                        <form action="{{ route('notifications.read', ['notification' => $notification->id]) }}" method="POST" class="ml-3">
                             @csrf
                             <button type="submit" class="w-8 h-8 bg-white rounded-lg text-[#2c3e66] hover:bg-gray-100 transition flex items-center justify-center" title="Mark as read">
                                 <i class="fas fa-check"></i>
@@ -238,7 +238,7 @@
                             </small>
                         </div>
                         @if(!$notification->is_read)
-                        <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-3">
+                        <form action="{{ route('notifications.read', ['notification' => $notification->id]) }}" method="POST" class="ml-3">
                             @csrf
                             <button type="submit" class="w-8 h-8 bg-white rounded-lg text-[#2c3e66] hover:bg-gray-100 transition flex items-center justify-center" title="Mark as read">
                                 <i class="fas fa-check"></i>
@@ -274,7 +274,7 @@
                             </small>
                         </div>
                         @if(!$notification->is_read)
-                        <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-3">
+                        <form action="{{ route('notifications.read', ['notification' => $notification->id]) }}" method="POST" class="ml-3">
                             @csrf
                             <button type="submit" class="w-8 h-8 bg-white rounded-lg text-[#2c3e66] hover:bg-gray-100 transition flex items-center justify-center" title="Mark as read">
                                 <i class="fas fa-check"></i>
@@ -310,7 +310,7 @@
                             </small>
                         </div>
                         @if(!$notification->is_read)
-                        <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-3">
+                        <form action="{{ route('notifications.read', ['notification' => $notification->id]) }}" method="POST" class="ml-3">
                             @csrf
                             <button type="submit" class="w-8 h-8 bg-white rounded-lg text-[#2c3e66] hover:bg-gray-100 transition flex items-center justify-center" title="Mark as read">
                                 <i class="fas fa-check"></i>
