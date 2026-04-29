@@ -13,8 +13,13 @@ class ProfileController extends Controller
 {
     public function show()
     {
-        $user = Auth::user()->load('profile');
-        $user->posts = $user->posts()->orderBy('created_at', 'desc')->get();
+        $user = Auth::user()->load([
+            'profile',
+            'posts' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+        ]);
+
         return view('profile.show', compact('user'));
     }
 
@@ -28,8 +33,6 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'course_id' => 'required|exists:courses,id',
-            'year_graduated' => 'required|integer',
             'birthday' => 'nullable|date',
             'contact_number' => 'nullable|string|max:20',
             'job_title' => 'nullable|string|max:255',
@@ -57,9 +60,6 @@ class ProfileController extends Controller
             $profile->profile_picture = $path;
         }
         
-        $profile->course_id = $request->course_id;
-        $profile->course = $course->name; // Keep for backward compatibility
-        $profile->year_graduated = $request->year_graduated;
         $profile->birthday = $request->birthday;
         $profile->contact_number = $request->contact_number;
         $profile->job_title = $request->job_title;
@@ -138,9 +138,14 @@ class ProfileController extends Controller
     public function showOther(User $user)
     {
         // Load the user with their profile and posts sorted by recent first
-        $user->load('profile');
-        $user->posts = $user->posts()->orderBy('created_at', 'desc')->get();
-        $user->load('posts.comments.user', 'posts.likes');
+        $user->load([
+            'profile',
+            'posts' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+            'posts.comments.user',
+            'posts.likes'
+        ]);
         
         return view('profile.show-other', compact('user'));
     }
