@@ -11,56 +11,21 @@ use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\AccountDeletionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\AccountApprovedMail;
 
-// =============================================
-// TEMPORARY SEEDER ROUTE - REMOVE AFTER RUNNING
-// Visit /seed-database to run all seeders
-// =============================================
-Route::get('/create-admin-now', function() {
-    try {
-        // Delete if exists to avoid duplicates
-        \App\Models\User::where('email', 'admin@admin.com')->delete();
-        
-        // Create admin directly
-        $admin = \App\Models\User::create([
-            'first_name' => 'Admin',
-            'last_name' => 'User',
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('password'),
-            'role' => 'admin',
-            'status' => 'approved'
-        ]);
-        
-        // Create profile
-        \App\Models\Profile::updateOrCreate(
-            ['user_id' => $admin->id],
-            [
-                'full_name' => 'Admin User',
-                'course' => 'Computer Science',
-                'year_graduated' => 2024,
-                'contact_number' => '09123456789',
-                'job_title' => 'System Administrator'
-            ]
-        );
-        
-        return "<div style='text-align: center; padding: 50px;'>
-            <h1 style='color: green;'>✅ Admin Created Successfully!</h1>
-            <div style='background: #f0f0f0; padding: 20px; border-radius: 10px; display: inline-block; text-align: left;'>
-                <p><strong>🔐 Login Credentials:</strong></p>
-                <p>📧 Email: <strong>admin@admin.com</strong></p>
-                <p>🔑 Password: <strong>password</strong></p>
-                <p>👤 Role: <strong>admin</strong></p>
-            </div>
-            <br>
-            <a href='/login' style='background: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Go to Login →</a>
-        </div>";
-        
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
-    }
-});
+    Route::get('/test-email', function() {
+        try {
+            $user = \App\Models\User::first();
+            Mail::raw('Test email', function($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Test from Alumni System');
+            });
+            return "✅ Email sent! Check your inbox/spam.";
+        } catch (\Exception $e) {
+            return "❌ Error: " . $e->getMessage();
+        }
+    });
 
-// Welcome page - Make this the landing page
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
