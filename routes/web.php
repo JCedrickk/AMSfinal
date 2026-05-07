@@ -12,11 +12,59 @@ use App\Http\Controllers\AccountDeletionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
+// =============================================
+// TEMPORARY SEEDER ROUTE - REMOVE AFTER RUNNING
+// Visit /seed-database to run all seeders
+// =============================================
+Route::get('/seed-database', function() {
+    try {
+        // Run your admin user seeder
+        \Artisan::call('db:seed', ['--class' => 'AdminUserSeeder', '--force' => true]);
+        
+        // Run all other seeders (courses, etc.)
+        \Artisan::call('db:seed', ['--force' => true]);
+        
+        $output = \Artisan::output();
+        
+        // Get admin user info
+        $admin = \App\Models\User::where('email', 'admin@admin.com')->first();
+        
+        if($admin) {
+            return "<div style='font-family: Arial; text-align: center; padding: 50px;'>
+                <h1 style='color: green;'>✅ Database Seeded Successfully!</h1>
+                <div style='background: #f0f0f0; padding: 20px; border-radius: 10px; display: inline-block; text-align: left;'>
+                    <p><strong>🔐 Admin Login Credentials:</strong></p>
+                    <p>📧 Email: <strong>admin@admin.com</strong></p>
+                    <p>🔑 Password: <strong>password</strong></p>
+                    <p>👤 Role: <strong>{$admin->role}</strong></p>
+                    <p>✅ Status: <strong>{$admin->status}</strong></p>
+                </div>
+                <br>
+                <a href='/login' style='background: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>🔐 Go to Login</a>
+                <br><br>
+                <small style='color: gray;'>Seeder Output: " . substr($output, 0, 200) . "</small>
+            </div>";
+        } else {
+            return "<div style='text-align: center; padding: 50px;'>
+                <h1 style='color: orange;'>⚠️ Seeders Ran But Admin Not Found</h1>
+                <p>Check your AdminUserSeeder file to confirm the email address.</p>
+                <a href='/register'>Register manually →</a>
+            </div>";
+        }
+        
+    } catch (\Exception $e) {
+        return "<div style='text-align: center; padding: 50px;'>
+            <h1 style='color: red;'>❌ Error Running Seeders</h1>
+            <p style='color: red;'>" . $e->getMessage() . "</p>
+            <pre style='background: #f0f0f0; padding: 10px; text-align: left;'>" . $e->getTraceAsString() . "</pre>
+        </div>";
+    }
+});
+
 // Welcome page - Make this the landing page
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
-
 // Guest routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
