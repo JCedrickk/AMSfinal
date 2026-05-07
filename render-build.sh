@@ -28,8 +28,11 @@ php artisan migrate --force
 echo "🌱 Seeding courses..."
 php artisan db:seed --class=CourseSeeder --force
 
-# Seed all other seeders (including admin)
-echo "🌱 Running all seeders..."
+# Run your specific admin seeder
+echo "🌱 Creating admin user..."
+php artisan db:seed --class=AdminUserSeeder --force
+
+# Then run other seeders if needed
 php artisan db:seed --force
 
 # Cache for production
