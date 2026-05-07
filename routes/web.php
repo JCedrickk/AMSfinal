@@ -13,13 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 // Welcome page - Make this the landing page
-Route::get('/', function() {
-    return "Site is working! Database connection issue. Contact admin.";
-});
-
-Route::get('/test', function() {
+Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 // Guest routes
 Route::middleware('guest')->group(function () {
