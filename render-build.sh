@@ -2,6 +2,9 @@
 
 echo "🚀 Starting Render build process..."
 
+# Exit on error
+set -e
+
 # Install PHP dependencies
 echo "📦 Installing Composer dependencies..."
 composer install --no-interaction --optimize-autoloader --no-dev
@@ -13,15 +16,23 @@ npm install --legacy-peer-deps
 echo "🔨 Building assets..."
 npm run build
 
-# Run database migrations (CRITICAL!)
+# Create storage link
+echo "🔗 Creating storage link..."
+php artisan storage:link || true
+
+# Run database migrations
 echo "🗄️ Running database migrations..."
 php artisan migrate --force
 
-# Seed courses data
-echo "🌱 Seeding courses data..."
+# Seed courses specifically
+echo "🌱 Seeding courses..."
 php artisan db:seed --class=CourseSeeder --force
 
-# Clear and cache config for production
+# Seed all other seeders (including admin)
+echo "🌱 Running all seeders..."
+php artisan db:seed --force
+
+# Cache for production
 echo "⚡ Caching configuration..."
 php artisan config:cache
 php artisan route:cache
